@@ -31,13 +31,13 @@ module BubbleWrap; module HTTP; class Query
     @method = http_method.upcase.to_s
     @delegator = options.delete(:action) || self
     if @delegator.respond_to?("weak!")
-      @delegator.weak! if BubbleWrap.use_weak_callbacks?
+      @delegator.weak! if BubbleWrap::HTTP::Patch.use_weak_callbacks?
     end
 
     @payload = options.delete(:payload)
     @encoding = options.delete(:encoding) || NSUTF8StringEncoding
     @files = options.delete(:files)
-    @boundary = options.delete(:boundary) || BW.create_uuid
+    @boundary = options.delete(:boundary) || BubbleWrap::HTTP::Patch.create_uuid
     @credentials = options.delete(:credentials) || {}
     @credentials = {:username => nil, :password => nil}.merge(@credentials)
     @timeout = options.delete(:timeout) || 30.0
@@ -77,7 +77,7 @@ Cache policy: #{@cache_policy}, response: #{@response.inspect} >"
     # On OSX, if using an FTP connection, this method will fire *immediately* after creating an
     # NSURLConnection, even if the connection has not yet started. The `response`
     # object will be a NSURLResponse, *not* an `NSHTTPURLResponse`, and so will start to crash.
-    if BubbleWrap::HTTP.osx? && !response.is_a?(NSHTTPURLResponse)
+    if BubbleWrap::HTTP::Patch.osx? && !response.is_a?(NSHTTPURLResponse)
       return
     end
     did_receive_response(response)
@@ -180,12 +180,12 @@ Cache policy: #{@cache_policy}, response: #{@response.inspect} >"
   end
 
   def show_status_indicator(show)
-    if BubbleWrap::HTTP.ios? && (@status.nil? || @status != !!show)
+    if BubbleWrap::HTTP::Patch.ios? && (@status.nil? || @status != !!show)
       @status = !!show
       if show
-        BW::NetworkIndicator.show
+        BubbleWrap::HTTP::Patch::NetworkIndicator.show
       else
-        BW::NetworkIndicator.hide
+        BubbleWrap::HTTP::Patch::NetworkIndicator.hide
       end
     end
   end
@@ -253,10 +253,10 @@ Cache policy: #{@cache_policy}, response: #{@response.inspect} >"
     if @payload.is_a?(NSData)
       body.appendData(@payload)
     elsif @payload.is_a?(String)
-      body.appendData(@payload.to_encoded_data @encoding)
+      body.appendData encode_to_data(@payload, @encoding)
     elsif @format == :json
-      json_string = BW::JSON.generate(@payload)
-      body.appendData(json_string.to_encoded_data @encoding)
+      json_string = BubbleWrap::HTTP::Patch::JSON.generate(@payload)
+      body.appendData encode_to_data(json_string, @encoding)
     else
       append_form_params(body)
     end
@@ -270,7 +270,7 @@ Cache policy: #{@cache_policy}, response: #{@response.inspect} >"
       s += "Content-Disposition: form-data; name=\"#{key}\"\r\n\r\n"
       s += value.to_s
       s += "\r\n"
-      body.appendData(s.to_encoded_data @encoding)
+      body.appendData encode_to_data(s, @encoding)
     end
     @payload_or_files_were_appended = true
     body
@@ -305,9 +305,9 @@ Cache policy: #{@cache_policy}, response: #{@response.inspect} >"
       s += "Content-Disposition: attachment; name=\"#{key}\"; filename=\"#{file[:filename]}\"\r\n"
       s += "Content-Type: #{file[:content_type]}\r\n\r\n"
       file_data = NSMutableData.new
-      file_data.appendData(s.to_encoded_data @encoding)
+      file_data.appendData encode_to_data(s, @encoding)
       file_data.appendData(file[:data])
-      file_data.appendData("\r\n".to_encoded_data @encoding)
+      file_data.appendData encode_to_data("\r\n", @encoding)
       body.appendData(file_data)
     end
     @payload_or_files_were_appended = true
@@ -315,7 +315,7 @@ Cache policy: #{@cache_policy}, response: #{@response.inspect} >"
   end
 
   def append_body_boundary(body)
-    body.appendData("--#{@boundary}--\r\n".to_encoded_data @encoding)
+    body.appendData encode_to_data("--#{@boundary}--\r\n", @encoding)
   end
 
   def create_url(url_string)
@@ -376,7 +376,7 @@ Cache policy: #{@cache_policy}, response: #{@response.inspect} >"
   end
 
   def log(message)
-    NSLog message if BubbleWrap.debug?
+    NSLog message if BubbleWrap::HTTP::Patch.debug?
   end
 
   def escape_line_feeds(hash)
@@ -403,6 +403,10 @@ Cache policy: #{@cache_policy}, response: #{@response.inspect} >"
   # This is a temporary method used for mocking.
   def create_connection(request, delegate)
     NSURLConnection.alloc.initWithRequest(request, delegate:delegate, startImmediately:false)
+  end
+
+  def encode_to_data(string, encoding)
+    string.dataUsingEncoding encoding
   end
 
 end; end; end

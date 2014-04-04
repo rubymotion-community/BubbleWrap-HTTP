@@ -16,7 +16,7 @@ describe BubbleWrap::HTTP::Query do
     end
 
     it "should generate json body" do
-      BW::JSON.parse(@json_query.request.HTTPBody).should == @json_payload
+      BubbleWrap::HTTP::Patch::JSON.parse(@json_query.request.HTTPBody).should == @json_payload
     end
   end
 
@@ -109,13 +109,13 @@ describe BubbleWrap::HTTP::Query do
     it "throws an error for invalid/missing URL schemes" do
       %w(http https file ftp).each do |scheme|
         lambda {
-          q = BW::HTTP::Query.new("#{scheme}://example.com", :get) { |r| p r.body.to_str }
+          q = BubbleWrap::HTTP::Query.new("#{scheme}://example.com", :get) { |r| p r.body.to_str }
           q.cancel
         }.should.not.raise InvalidURLError
       end
 
       lambda {
-        BW::HTTP::Query.new("bad://example.com", :get) { |r| p r.body.to_str }
+        BubbleWrap::HTTP::Query.new("bad://example.com", :get) { |r| p r.body.to_str }
       }.should.raise InvalidURLError
     end
 
@@ -224,7 +224,7 @@ describe BubbleWrap::HTTP::Query do
           twitter: {filename: "test.txt", data: nil}
         }
         lambda {
-          BW::HTTP::Query.new("http://example.com", :post, { files: files})
+          BubbleWrap::HTTP::Query.new("http://example.com", :post, { files: files})
         }.should.raise InvalidFileError
       end
 
@@ -367,7 +367,7 @@ describe BubbleWrap::HTTP::Query do
       @query.connection.was_started.should.equal true
     end
 
-    if BubbleWrap::HTTP.ios?
+    if BubbleWrap::HTTP::Patch.ios? && BubbleWrap.const_defined?("NetworkIndicator")
       it "should turn on the network indicator" do
         UIApplication.sharedApplication.isNetworkActivityIndicatorVisible.should.equal true
       end
@@ -544,11 +544,11 @@ describe BubbleWrap::HTTP::Query do
       @fake_error = NSError.errorWithDomain('testing', code:7768, userInfo:nil)
     end
 
-    if BubbleWrap::HTTP.ios?
+    if BubbleWrap::HTTP::Patch.ios? && BubbleWrap.const_defined?("NetworkIndicator")
       it "should turn off network indicator" do
         UIApplication.sharedApplication.isNetworkActivityIndicatorVisible.should == true
         @query.connection(nil, didFailWithError:@fake_error)
-        wait BW::NetworkIndicator::DELAY do
+        wait BubbleWrap::NetworkIndicator::DELAY do
           UIApplication.sharedApplication.isNetworkActivityIndicatorVisible.should == false
         end
       end
@@ -588,10 +588,10 @@ describe BubbleWrap::HTTP::Query do
 
   describe "when connectionDidFinishLoading:" do
 
-    if BubbleWrap::HTTP.ios?
+    if BubbleWrap::HTTP::Patch.ios? && BubbleWrap.const_defined?("NetworkIndicator")
       it "should turn off the network indicator" do
         @query.connectionDidFinishLoading(nil)
-        wait BW::NetworkIndicator::DELAY do
+        wait BubbleWrap::NetworkIndicator::DELAY do
           UIApplication.sharedApplication.isNetworkActivityIndicatorVisible.should == false
         end
       end
@@ -746,9 +746,9 @@ describe BubbleWrap::HTTP::Query do
       @doa_query.connection.was_cancelled.should.equal true
     end
 
-    if BubbleWrap::HTTP.ios?
+    if BubbleWrap::HTTP::Patch.ios? && BubbleWrap.const_defined?("NetworkIndicator")
       it "should turn off the network indicator" do
-        wait BW::NetworkIndicator::DELAY do
+        wait BubbleWrap::NetworkIndicator::DELAY do
           UIApplication.sharedApplication.isNetworkActivityIndicatorVisible.should.equal false
         end
       end
@@ -815,9 +815,9 @@ describe BubbleWrap::HTTP::Query do
   end
 
   after do
-    if BubbleWrap::HTTP.ios?
-      sleep(BW::NetworkIndicator::DELAY) if BW::NetworkIndicator.counter > 0
-      raise "I think you forgot to 'cancel' a query (in order for BW::NetworkIndicator to be tested properly, all queries must be canceled)" if BW::NetworkIndicator.counter > 0
+    if BubbleWrap::HTTP::Patch.ios?
+      sleep(BubbleWrap::HTTP::Patch::NetworkIndicator::DELAY) if BubbleWrap::HTTP::Patch::NetworkIndicator.counter > 0
+      raise "I think you forgot to 'cancel' a query (in order for BubbleWrap::HTTP::Patch::NetworkIndicator to be tested properly, all queries must be canceled)" if BubbleWrap::HTTP::Patch::NetworkIndicator.counter > 0
     end
   end
 
