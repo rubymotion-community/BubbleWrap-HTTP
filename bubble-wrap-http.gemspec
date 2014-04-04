@@ -1,15 +1,14 @@
 # -*- encoding: utf-8 -*-
-VERSION = "1.0"
-
 Gem::Specification.new do |spec|
+  version = '1.6.0' # sync'd to BW version
   spec.name          = "bubble-wrap-http"
-  spec.version       = VERSION
-  spec.authors       = ["Clay Allsopp"]
-  spec.email         = ["clay.allsopp@gmail.com"]
-  spec.description   = %q{TODO: Write a gem description}
-  spec.summary       = %q{TODO: Write a gem summary}
-  spec.homepage      = ""
-  spec.license       = ""
+  spec.version       = version
+  spec.authors       = ['Matt Aimonetti', 'Francis Chong', 'James Harton', 'Clay Allsopp', 'Dylan Markow', 'Jan Weinkauff', 'Marin Usalj']
+  spec.email         = ['mattaimonetti@gmail.com', 'francis@ignition.hk', 'james@sociable.co.nz', 'clay.allsopp@gmail.com', 'dylan@dylanmarkow.com', 'jan@dreimannzelt.de', 'mneorr@gmail.com']
+  spec.description   = "BubbleWrap's deprecated HTTP library"
+  spec.summary       = "BubbleWrap's deprecated HTTP library"
+  spec.homepage      = "https://github.com/rubymotion/BubbleWrap-HTTP"
+  spec.license       = "MIT"
 
   files = []
   files << 'README.md'
