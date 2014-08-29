@@ -34,6 +34,7 @@ module BubbleWrap; module HTTP; class Query
       @delegator.weak! if BubbleWrap::HTTP::Patch.use_weak_callbacks?
     end
 
+    @allow_invalid_ssl = options.delete(:allow_invalid_ssl)
     @payload = options.delete(:payload)
     @encoding = options.delete(:encoding) || NSUTF8StringEncoding
     @files = options.delete(:files)
@@ -142,6 +143,15 @@ Cache policy: #{@cache_policy}, response: #{@response.inspect} >"
     @response.update(status_code: status_code, body: response_body, headers: response_headers, url: @url, original_url: @original_url)
 
     call_delegator_with_response
+  end
+
+  def connection(connection, willSendRequestForAuthenticationChallenge: challenge)
+    trust_challenge(challenge) if @allow_invalid_ssl
+    challenge.sender.continueWithoutCredentialForAuthenticationChallenge(challenge)
+  end
+
+  def trust_challenge(challenge)
+    challenge.sender.useCredential(NSURLCredential.credentialForTrust(challenge.protectionSpace.serverTrust), forAuthenticationChallenge: challenge)
   end
 
   def connection(connection, didReceiveAuthenticationChallenge:challenge)
