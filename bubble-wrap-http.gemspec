@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 Gem::Specification.new do |spec|
-  version = '1.7.0' # sync'd to BW version
+  version = '1.7.1' # sync'd to BW version
   spec.name          = "bubble-wrap-http"
   spec.version       = version
   spec.authors       = ['Matt Aimonetti', 'Francis Chong', 'James Harton', 'Clay Allsopp', 'Dylan Markow', 'Jan Weinkauff', 'Marin Usalj']
